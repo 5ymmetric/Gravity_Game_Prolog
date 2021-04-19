@@ -1,0 +1,2 @@
+fewestRotationsSingle(Maze,Moves):-
+    false.
