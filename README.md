@@ -1,1 +1,1 @@
-# Gravity_Game_Prolog
+# Gravity Game Prolog
