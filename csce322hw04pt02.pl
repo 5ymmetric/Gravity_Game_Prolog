@@ -1,2 +1,168 @@
-fewestRotationsSingle(Maze,Moves):-
-    false.
+:- use_module(library(clpfd)).
+
+fewestRotationsSingle(Maze, Moves):-
+    minimumRotations(Maze, Moves).
+
+% find2D(What,ListOfLists,Where)
+find2D(What,[Row|_],(0,Column)):-    
+    find(What,Row,Column).    
+find2D(What,[_|Rows],(R,C)):-    
+    find2D(What,Rows,(RowsR,C)),    
+    R is RowsR + 1.
+
+% find(What,List,Where)    
+find(What,[What|_],0).
+find(What,[_|T],Where):-
+    find(What,T,WhereT),    
+    Where is WhereT + 1.
+
+applyGravityC(Maze, Final):-
+    clockwise(Maze, R),
+    updateMaze(R, 1, Final).
+
+applyGravityCC(Maze, Final):-
+    counterClockwise(Maze, R),
+    updateMaze(R, 1, Final).
+
+applyGravityOneEighty(Maze, Final):-
+    oneEighty(Maze, R),
+    updateMaze(R, 1, Final).
+
+clockwise(Maze, RotatedMaze):-
+    reverse(Maze, ReversedMaze),
+    transpose(ReversedMaze, RotatedMaze).
+
+counterClockwise(Maze, RotatedMaze):-
+    transpose(Maze, TransposedMaze),
+    reverse(TransposedMaze, RotatedMaze).
+
+oneEighty(Maze, RotatedMaze):-
+    clockwise(Maze, Once),
+    clockwise(Once, RotatedMaze).
+
+playerLocation(Maze, Player, (R, C)):-
+    find2D(Player, Maze, (R, C)).
+
+goalLocation(Maze, g, (R, C)):-
+    find2D(g, Maze, (R, C)).
+
+solved(Maze):-
+    not(goalLocation(Maze, g, Location)).
+
+% dropn(Number,BeforeList,AfterList)
+dropn(0,Before,Before).    
+dropn(_,[],[]).    
+dropn(N,[_|TB],TA):-
+    length(_,N),    
+    N > 0,    
+    NM1 is N - 1,    
+    dropn(NM1,TB,TA).
+
+playerColumn(Maze, Player, H):-
+    counterClockwise(Maze, RotatedMaze),
+    playerLocation(RotatedMaze, Player, (R, C)),
+    dropn(R, RotatedMaze, [H|T]).
+
+updatePlayerColumn(Maze, Player, FinalColumn):-
+    playerColumn(Maze, Player, H),
+    playerLocation(Maze, 1, (R, C)),
+    dropn(R, H, C1),
+    dropn(1, C1, Column),
+    playerMove(Column, Moves),
+    FinalLocation is Moves + R,
+    replacePlayer(Player, H, Result),
+    replace(FinalLocation, Result, Player, FinalColumn).
+
+updateMaze(Maze, Player, FinalMaze):-
+    counterClockwise(Maze, RotatedMaze),
+    playerLocation(RotatedMaze, Player, (R, C)),
+    updatePlayerColumn(Maze, Player, FinalColumn),
+    replace(R, RotatedMaze, FinalColumn, MazeF),
+    clockwise(MazeF, FinalMaze).
+
+replacePlayer(Player, List, Result):-
+    append(Prefix,[Player|Suffix],List),
+    append(Prefix, [-], Prefix1),
+    append(Prefix1, Suffix, Result).
+
+replace(Index, List, Element, Result):-
+    nth0(Index, List, _, Temp),
+    nth0(Index, Result, Element, Temp).
+
+move(-).
+move(g).
+
+playerMove([x|T], 0).
+playerMove([g|T], 1).
+playerMove([H|T], Moves):-
+    move(H),
+    playerMove(T, MoveT),
+    Moves is MoveT + 1.
+
+shouldMoveRight(Maze):-
+    playerLocation(Maze, 1, (R, C)),
+    goalLocation(Maze, g, (R1, C1)),
+    0 > C - C1.
+
+shouldMoveRight(Maze):-
+    playerLocation(Maze, 1, (R, C)),
+    goalLocation(Maze, g, (R1, C1)),
+    0 < C - C1.
+
+shouldMoveRight(Maze):-
+    playerLocation(Maze, 1, (R, C)),
+    goalLocation(Maze, g, (R1, C1)),
+    0 =:= R - R1.
+
+shouldMoveLeft(Maze):-
+    playerLocation(Maze, 1, (R, C)),
+    goalLocation(Maze, g, (R1, C1)),
+    0 =:= R - R1.
+
+shouldMoveLeft(Maze):-
+    playerLocation(Maze, 1, (R, C)),
+    goalLocation(Maze, g, (R1, C1)),
+    0 < C - C1.
+
+shouldMoveLeft(Maze):-
+    playerLocation(Maze, 1, (R, C)),
+    goalLocation(Maze, g, (R1, C1)),
+    0 > C - C1.
+
+shouldMoveOneEighty(Maze):-
+    playerLocation(Maze, 1, (R, C)),
+    goalLocation(Maze, g, (R1, C1)),
+    0 > R - R1.
+
+shouldMoveOneEighty(Maze):-
+    playerLocation(Maze, 1, (R, C)),
+    goalLocation(Maze, g, (R1, C1)),
+    0 < R - R1.
+
+shouldMoveOneEighty(Maze):-
+    playerLocation(Maze, 1, (R, C)),
+    goalLocation(Maze, g, (R1, C1)),
+    0 =:= C - C1.
+
+minimumRotations(Maze, Paths):-
+    between(1, 6, MinPathsLength),
+    length(Paths, MinPathsLength),
+    paths(Maze, Paths).
+
+paths(Maze, []):-
+    solved(Maze).
+
+paths(Maze, [c|Paths]):-
+    shouldMoveRight(Maze),
+    applyGravityC(Maze, RotatedMaze),
+    paths(RotatedMaze, Paths).
+
+paths(Maze, [cc|Paths]):-
+    shouldMoveLeft(Maze),
+    applyGravityCC(Maze, RotatedMaze),
+    paths(RotatedMaze, Paths).
+
+paths(Maze, [180|Paths]):-
+    shouldMoveOneEighty(Maze),
+    applyGravityOneEighty(Maze, RotatedMaze),
+    paths(RotatedMaze, Paths).
