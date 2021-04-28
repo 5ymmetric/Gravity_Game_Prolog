@@ -1,7 +1,8 @@
 :- use_module(library(clpfd)).
 
 fewestRotationsSingle(Maze, Moves):-
-    minimumRotations(Maze, Moves).
+    smallestMoveLengthFinder(Maze, MoveLength),
+    minimumRotations(Maze, Moves, MoveLength).
 
 % find2D(What,ListOfLists,Where)
 find2D(What,[Row|_],(0,Column)):-    
@@ -99,70 +100,30 @@ playerMove([H|T], Moves):-
     playerMove(T, MoveT),
     Moves is MoveT + 1.
 
-shouldMoveRight(Maze):-
-    playerLocation(Maze, 1, (R, C)),
-    goalLocation(Maze, g, (R1, C1)),
-    0 > C - C1.
+minimumRotations(Maze, Paths, MaxLength):-
+    between(1, MaxLength, MinPathsLength),
+    length(Paths, MinPathsLength),
+    paths(Maze, Paths),
+    MaxLength is MinPathsLength.
 
-shouldMoveRight(Maze):-
-    playerLocation(Maze, 1, (R, C)),
-    goalLocation(Maze, g, (R1, C1)),
-    0 < C - C1.
-
-shouldMoveRight(Maze):-
-    playerLocation(Maze, 1, (R, C)),
-    goalLocation(Maze, g, (R1, C1)),
-    0 =:= R - R1.
-
-shouldMoveLeft(Maze):-
-    playerLocation(Maze, 1, (R, C)),
-    goalLocation(Maze, g, (R1, C1)),
-    0 =:= R - R1.
-
-shouldMoveLeft(Maze):-
-    playerLocation(Maze, 1, (R, C)),
-    goalLocation(Maze, g, (R1, C1)),
-    0 < C - C1.
-
-shouldMoveLeft(Maze):-
-    playerLocation(Maze, 1, (R, C)),
-    goalLocation(Maze, g, (R1, C1)),
-    0 > C - C1.
-
-shouldMoveOneEighty(Maze):-
-    playerLocation(Maze, 1, (R, C)),
-    goalLocation(Maze, g, (R1, C1)),
-    0 > R - R1.
-
-shouldMoveOneEighty(Maze):-
-    playerLocation(Maze, 1, (R, C)),
-    goalLocation(Maze, g, (R1, C1)),
-    0 < R - R1.
-
-shouldMoveOneEighty(Maze):-
-    playerLocation(Maze, 1, (R, C)),
-    goalLocation(Maze, g, (R1, C1)),
-    0 =:= C - C1.
-
-minimumRotations(Maze, Paths):-
+smallestMoveLengthFinder(Maze, MoveLength):-
     between(1, 6, MinPathsLength),
     length(Paths, MinPathsLength),
-    paths(Maze, Paths).
+    paths(Maze, Paths),
+    MoveLength is MinPathsLength,
+    !.
 
 paths(Maze, []):-
     solved(Maze).
 
 paths(Maze, [c|Paths]):-
-    shouldMoveRight(Maze),
     applyGravityC(Maze, RotatedMaze),
     paths(RotatedMaze, Paths).
 
 paths(Maze, [cc|Paths]):-
-    shouldMoveLeft(Maze),
     applyGravityCC(Maze, RotatedMaze),
     paths(RotatedMaze, Paths).
 
 paths(Maze, [180|Paths]):-
-    shouldMoveOneEighty(Maze),
     applyGravityOneEighty(Maze, RotatedMaze),
     paths(RotatedMaze, Paths).
