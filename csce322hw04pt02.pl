@@ -48,7 +48,7 @@ goalLocation(Maze, g, (R, C)):-
     find2D(g, Maze, (R, C)).
 
 solved(Maze):-
-    not(goalLocation(Maze, g, Location)).
+    not(goalLocation(Maze, g, _)).
 
 % dropn(Number,BeforeList,AfterList)
 dropn(0,Before,Before).    
@@ -61,12 +61,12 @@ dropn(N,[_|TB],TA):-
 
 playerColumn(Maze, Player, H):-
     counterClockwise(Maze, RotatedMaze),
-    playerLocation(RotatedMaze, Player, (R, C)),
-    dropn(R, RotatedMaze, [H|T]).
+    playerLocation(RotatedMaze, Player, (R, _)),
+    dropn(R, RotatedMaze, [H|_]).
 
 updatePlayerColumn(Maze, Player, FinalColumn):-
     playerColumn(Maze, Player, H),
-    playerLocation(Maze, 1, (R, C)),
+    playerLocation(Maze, 1, (R, _)),
     dropn(R, H, C1),
     dropn(1, C1, Column),
     playerMove(Column, Moves),
@@ -76,7 +76,7 @@ updatePlayerColumn(Maze, Player, FinalColumn):-
 
 updateMaze(Maze, Player, FinalMaze):-
     counterClockwise(Maze, RotatedMaze),
-    playerLocation(RotatedMaze, Player, (R, C)),
+    playerLocation(RotatedMaze, Player, (R, _)),
     updatePlayerColumn(Maze, Player, FinalColumn),
     replace(R, RotatedMaze, FinalColumn, MazeF),
     clockwise(MazeF, FinalMaze).
@@ -93,8 +93,8 @@ replace(Index, List, Element, Result):-
 move(-).
 move(g).
 
-playerMove([x|T], 0).
-playerMove([g|T], 1).
+playerMove([x|_], 0).
+playerMove([g|_], 1).
 playerMove([H|T], Moves):-
     move(H),
     playerMove(T, MoveT),

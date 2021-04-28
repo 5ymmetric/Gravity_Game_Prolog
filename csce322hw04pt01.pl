@@ -31,4 +31,4 @@ playerCounter(Maze, Count):-
     length(PlayerList, Count).
 
 playerFound(Maze, Player):-
-    find2D(Player, Maze, Where).
+    find2D(Player, Maze, _).
