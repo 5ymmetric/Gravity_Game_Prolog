@@ -86,6 +86,8 @@ replacePlayer(Player, List, Result):-
     append(Prefix, [-], Prefix1),
     append(Prefix1, Suffix, Result).
 
+% https://www.swi-prolog.org/pldoc/doc_for?object=nth0/4
+% Prolog Documentation
 replace(Index, List, Element, Result):-
     nth0(Index, List, _, Temp),
     nth0(Index, Result, Element, Temp).
